@@ -25,6 +25,24 @@ export function useAxios() {
                 console.error('API call failed:', error);
                 throw new Error('Failed to fetch data');
             }
-        }
+        },
+        delete: async (endpoint: string, { params = {} } = {}) => {
+            try {
+                const response = await axios.delete(endpoint, { params });
+                return response;
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw new Error('Failed to fetch data');
+            }
+        },
+        put: async (endpoint: string, item: any) => {
+            try {
+                const response = await axios.put(endpoint,item);
+                return response;
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw new Error('Failed to fetch data');
+            }
+        },
     };
 }

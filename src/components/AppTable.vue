@@ -23,7 +23,9 @@ interface IAppTableProps {
     emptyMessage: string,
     header : string,
     filter?: any,
-    countType?: CountType
+    countType?: CountType,
+    showActionButtons: boolean,
+    editDelegate?: (item:any) => void,
 }
 
 const props = withDefaults(defineProps<IAppTableProps>(), {
@@ -33,6 +35,7 @@ const props = withDefaults(defineProps<IAppTableProps>(), {
     canExpand: false,
     emptyMessage: 'Nessun dato trovato',
     countType: CountType.Yes,
+    showActionButtons: true
 })
 
 const axiosInstance = useAxios()
@@ -44,6 +47,8 @@ const itemSelected = ref<any>(props.itemSelected || null)
 const currentPage = ref<number>(props.filter?.currentPage || 1)
 const pageSize = ref<number>(props.filter?.pageSize || 10)
 const fieldsOrder = ref<Record<string, string>>()
+
+const deleteRowDialog = ref(false);
 
 onMounted(() => {
     loadData()
@@ -78,7 +83,7 @@ const loadData = async () => {
 
     loading.value = true
     try {
-        const response = await axiosInstance.get(`${props.findEndpoint}`, { params })
+        const response = await axiosInstance.get(`${props.findEndpoint + '/find'}`, { params })
         rows.value = response.data
         if (props.countType == undefined || props.countType == CountType.No) return
 
@@ -102,11 +107,33 @@ const onRowSelect = (event: DataTableRowSelectEvent) => {
 defineExpose<IAppTableComponent>({
     reload, 
 })
+
+
+const confirmDeleteRow = async () => {
+    if (!props.findEndpoint) return;
+
+    try {
+        // Construct the endpoint URL by appending the id to the URL path
+        const endpointWithId = `${props.findEndpoint}/${itemSelected.value.id}`;
+        const response = await axiosInstance.delete(endpointWithId);
+        reload();
+
+    } finally {
+        loading.value = false;
+    }
+
+    console.log("Requesting delete confirmation for row: " + itemSelected.value.id);
+    deleteRowDialog.value = false;
+};
+
+function deleteRow(rowData: any) {
+    itemSelected.value = rowData;
+    deleteRowDialog.value = true;
+}
 </script>
 
 <template>
     <div>
-
         <DataTable :value="rows" :loading="loading" :dataKey="props.dataKey" @row-select="onRowSelect">
             <template #header v-if="showHeader">
                 <slot name="table_header">
@@ -125,6 +152,13 @@ defineExpose<IAppTableComponent>({
             </template>
             <Column v-for="column in props.columns" :key="column.field" :field="column.field" :header="column.header"
                 :sortable="column.sortable" />
+            <Column v-if="props.showActionButtons" :exportable="false" style="min-width: 12rem">
+                <template #body="slotProps">
+                    <Button v-if="editDelegate" icon="pi pi-pencil" outlined rounded class="mr-2" @click="editDelegate(slotProps.data)" />
+                    <Button icon="pi pi-trash" outlined rounded severity="danger"
+                        @click="deleteRow(slotProps.data)" />
+                </template>
+            </Column>
         </DataTable>
         <div class="paginator-container">
             <p class="paginator-text">Totale: {{ totalRecords }}</p>
@@ -132,6 +166,16 @@ defineExpose<IAppTableComponent>({
                 :totalRecords="totalRecords" :rowsPerPageOptions="[5, 10, 20, 50, 100]" @page="onPageChanged">
             </Paginator>
         </div>
+        <Dialog v-model:visible="deleteRowDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
+            <div class="flex items-center gap-4">
+                <i class="pi pi-exclamation-triangle !text-3xl" />
+                <span v-if="itemSelected">Are you sure you want to delete? <b>{{ "product.name" }}</b>?</span>
+            </div>
+            <template #footer>
+                <Button label="No" icon="pi pi-times" text @click="deleteRowDialog = false" />
+                <Button label="Yes" icon="pi pi-check" @click="confirmDeleteRow" />
+            </template>
+        </Dialog>
     </div>
 </template>
 

@@ -39,10 +39,6 @@ export default function useBaseCrudPage<
   }
 
   const submitDelegate = async (formData: IFormModel<TWrite>): Promise<void> => {
-    // if (!hasIdField(formData.data, idFieldName)) {
-    //   console.error(`field: '${idFieldName}' not exist!`)
-    //   return
-    // }
     if (!formData.isValid)
         return;
     if (hasIdField(formData.data, idFieldName)){

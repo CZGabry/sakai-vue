@@ -12,6 +12,7 @@ import { CountType } from '../../models/enums/countType';
 const axiosInstance: AxiosInstance = useAxios();
 const tbl = ref<IAppTableComponent | null>(null)
 const service = new StudentiApiService(axiosInstance)
+
 const toast = useToast()
 const {
     currentFilter,
@@ -52,14 +53,24 @@ function close() {
 }
 
 const addChildDelegate = () => {
+    itemToEdit.value = {};
     dialogVisible.value = true
 }
+
+
+const editDelegate = (item:any) => {
+    itemToEdit.value = { ...item }; 
+    //mode.value = 'edit';
+    console.log(itemToEdit.value)
+    dialogVisible.value = true;
+};
 </script>
 
 <template>
     <div>
-        <app-table ref="tbl" :filter="currentFilter" :countType="CountType.Yes" :columns="columns"
-            findEndpoint="https://localhost:7031/students/find" :addDelegate="addChildDelegate" />
+        <app-table ref="tbl" :filter="currentFilter" :countType="CountType.Yes"
+            :showActions="true" :columns="columns" findEndpoint="https://localhost:7031/students"
+            :addDelegate="addChildDelegate" :editDelegate="editDelegate" />
         <template>
             <div class="card">
                 <div class="font-semibold text-xl mb-4">Dialog</div>
@@ -86,23 +97,23 @@ const addChildDelegate = () => {
                             },
                             {
                                 label: 'Classe',
-                                name: 'classroomid',
+                                name: 'classroom_id',
                                 type: 'dropdown',
                                 findEndpoint: 'https://localhost:7031/classroom',
                                 freeSearchParameterName: 'cognome',
-                                optionLabel: 'roomNumber',
+                                optionLabel: 'room_number',
                                 optionValue: 'id',
                                 minCharQuery: 3,
                                 cssClass: 'col-3 md:col-3 lg:col-3',
                                 placeholder: 'classroom',
                             },
                             {
-                                label: 'Classe',
-                                name: 'courseids',
+                                label: 'Corsi',
+                                name: 'course_ids',
                                 type: 'multiselect',
                                 findEndpoint: 'https://localhost:7031/course',
                                 freeSearchParameterName: 'cognome',
-                                optionLabel: 'courseName',
+                                optionLabel: 'course_name',
                                 optionValue: 'id',
                                 minCharQuery: 3,
                                 cssClass: 'col-3 md:col-3 lg:col-3',

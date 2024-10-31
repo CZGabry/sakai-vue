@@ -5,8 +5,8 @@ interface IStudentiBase {
   name: string
   surname: string  
   email: string  
-  classrromid: number
-  courseids:number[]
+  classrrom_id: number
+  course_ids:number[]
 }
 export interface IStudentiWrite extends IStudentiBase {}
 export interface IStudentiRead extends IStudentiBase {}
